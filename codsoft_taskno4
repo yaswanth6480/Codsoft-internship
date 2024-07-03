@@ -1,0 +1,119 @@
+import java.io.IOException;
+
+import java.net.URI;
+
+import java.net.http.HttpClient;
+
+import
+
+java.net.http.HttpRequest;
+
+import java.net.http.HttpResponse;
+
+import java.util.Scanner;
+
+public class CurrencyConverter {
+
+private static final String EXCHANGE_RATE_API = "https://api.exchangerate-api.com/v4/latest/";
+
+private static final String DEFAULT_BASE_CURRENCY = "USD";
+
+public static void main(String[] args) {
+
+Scanner scanner = new Scanner(System.in);
+
+System.out.println("Welcome to the Currency Converter!");
+
+System.out.print("Enter the base currency (e.g., USD, EUR, JPY): ");
+
+String baseCurrency = scanner.next().toUpperCase();
+
+System.out.print("Enter the target currency (e.g., EUR, JPY, GBP): ");
+
+String targetCurrency = scanner.next().toUpperCase();
+
+System.out.print("Enter the amount to convert: ");
+
+double amount = scanner.nextDouble();
+
+double exchangeRate = fetchExchangeRate(baseCurrency, targetCurrency);
+if (exchangeRate != 0) {
+
+double convertedAmount = convertCurrency (amount, exchangeRate);
+displayResult(convertedAmount, targetCurrency);
+
+} else {
+
+System.out.println("Error: Unable to fetch exchange rate.");
+
+}
+
+}
+
+private static double fetchExchangeRate (String baseCurrency, String targetCurrency) {
+
+try {
+
+HttpClient client = HttpClient.newHttpClient();
+
+HttpRequest request = HttpRequest.newBuilder()
+
+.uri(URI.create(EXCHANGE_RATE_API + baseCurrency)) .GET()
+
+.build();
+
+HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+String responseBody = response.body();
+
+int startIndex = responseBody.indexOf(targetCurrency) + targetCurrency.length() + 3;
+
+int endIndex = responseBody.indexOf(")", startIndex);
+
+String exchangeRateStr = responseBody.substring(startIndex, endIndex);
+
+return Double.parseDouble(exchangeRateStr);
+
+} catch (IOException | InterruptedException e) {
+
+return 0;
+}
+}
+
+private static double convertCurrency (double amount, double exchangeRate){
+
+return amount * exchangeRate;
+}
+private static void displayResult(double convertedAmount, String targetCurrency) {
+    System.out.printf("The converted amount is: %.2f %s%n", convertedAmount, getCurrencySymbol (targetCurrency));
+
+}
+
+
+
+private static String getCurrencySymbol (String currencyCode) {
+
+switch (currencyCode) {
+
+case "USD":
+
+return "$";
+
+case "EUR":
+
+return "€";
+
+case "JPY":
+
+return "y";
+
+case "GBP":
+
+return "E";
+
+default:
+
+return "";
+}
+}
+}
